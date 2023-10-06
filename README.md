@@ -12,4 +12,8 @@ To install the Directus plugin for your project, follow these steps:
 
 3. **Run your project**
 
-    Just type `docker-compose up --build` in your terminal! 😎
+    Just type `docker-compose up --build` in your terminal! 😎 
+
+\\
+
+> This plugin is currently on stage: **proof of concept**
