@@ -18,10 +18,12 @@ export default defineEndpoint({
 
     router.get('/payment/:id', async (req, res) => {
       try {
-        // , accountability: req.accountability
         const ordersService = new ItemsService('orders', { schema: req.schema }) as AbstractService<OrderInterface>
 
         const order = await ordersService.readOne(req.params.id, { fields: ['*', 'items.*.*'] })
+
+        if (order.link)
+          return res.send(order.link)
 
         const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = []
 
@@ -45,27 +47,33 @@ export default defineEndpoint({
           })
         }
 
-        console.log(env.PUBLIC_URL)
-
         const session = await stripe.checkout.sessions.create({
           line_items,
-          shipping_options: [
-            { shipping_rate_data: { type: 'fixed_amount', fixed_amount: { amount: 0, currency: 'pln' }, display_name: 'Free shipping', delivery_estimate: { minimum: { unit: 'business_day', value: 5 }, maximum: { unit: 'business_day', value: 7 } } } },
-          ],
-          shipping_address_collection: {
-            allowed_countries: ['PL'],
-          },
           customer_email: 'test@o2.pl',
           currency: 'pln',
           mode: 'payment',
-          success_url: 'http://localhost:3000/success.html',
-          cancel_url: 'http://localhost:3000/cancel.html',
-
+          success_url: env.STRIPE_CUSTOMERS_SUCCESS_URL,
+          cancel_url: env.STRIPE_CUSTOMERS_CANCEL_URL,
+          payment_intent_data: {
+            // todo Inject in req
+            shipping: {
+              name: 'Test123',
+              phone: '000 000 000',
+              address: {
+                line1: 'Testline1',
+                city: 'TestCity',
+                country: 'PL',
+                line2: 'Testline2',
+                postal_code: '880-989',
+              },
+            },
+          },
           metadata: {
             order_id: order.id,
           },
         })
 
+        await ordersService.updateOne(order.id, { link: session.url })
         return res.send(session.url)
       }
       catch (err) {
@@ -97,44 +105,26 @@ export default defineEndpoint({
       }
 
       const ordersService = new ItemsService('orders', { schema: req.schema }) as AbstractService<OrderInterface>
+      const paymentIntent = event.data.object
+      const order_id = paymentIntent.metadata?.order_id
+
+      if (!order_id) {
+        console.error('order_id not provaided in stripe metadata')
+        return
+      }
+
+      const order = await ordersService.readOne(order_id)
 
       switch (event.type) {
-        case 'payment_intent.amount_capturable_updated':
-          const paymentIntentAmountCapturableUpdated = event.data.object
-          // Then define and call a function to handle the event payment_intent.amount_capturable_updated
-          break
-        case 'payment_intent.canceled':
-          const paymentIntentCanceled = event.data.object
-          // Then define and call a function to handle the event payment_intent.canceled
-          break
-        case 'payment_intent.created':
-          const paymentIntentCreated = event.data.object
-          // Then define and call a function to handle the event payment_intent.created
-          break
-        case 'payment_intent.partially_funded':
-          const paymentIntentPartiallyFunded = event.data.object
-          // Then define and call a function to handle the event payment_intent.partially_funded
-          break
         case 'payment_intent.payment_failed':
-          const paymentIntentPaymentFailed = event.data.object
-          // Then define and call a function to handle the event payment_intent.payment_failed
+          await ordersService.updateOne(order_id, { status: 'fail' })
           break
-        case 'payment_intent.processing':
-          const paymentIntentProcessing = event.data.object
-          // Then define and call a function to handle the event payment_intent.processing
-          break
-        case 'payment_intent.requires_action':
-          const paymentIntentRequiresAction = event.data.object
-          // Then define and call a function to handle the event payment_intent.requires_action
-          break
+          // case 'payment_intent.amount_capturable_updated':
+          //
+          //   break
         case 'payment_intent.succeeded':
-          const paymentIntentSucceeded = event.data.object
+          await ordersService.updateOne(order_id, { status: 'paid' })
 
-          const order_id = paymentIntentSucceeded.metadata.order_id
-
-          ordersService.updateOne(order_id, { status: 'paid' })
-
-          // Then define and call a function to handle the event payment_intent.succeeded
           break
         // ... handle other event types
         default:
