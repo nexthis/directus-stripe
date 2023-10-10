@@ -1,6 +1,11 @@
-import { defineEndpoint } from '@directus/extensions-sdk'
 import Stripe from 'stripe'
+import { defineEndpoint } from '@directus/extensions-sdk'
 import type { OrderInterface, ProductsInterface } from '../types/database'
+import type { Request, Response } from 'express'
+import type { PaymentRequestSchema } from '../validator/payment'
+import { paymentValidator } from '../validator/payment'
+import { OrderStatus } from '../constant/order'
+import validator from '../middleware/validator'
 import type { AbstractService } from '../types/services'
 
 function createImageUrl(baseUrl: string, image: string) {
@@ -16,14 +21,14 @@ export default defineEndpoint({
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-08-16' })
     const { ItemsService } = services
 
-    router.get('/payment/:id', async (req, res) => {
+    router.post('/payment/:id', validator(paymentValidator, 'body'), async (req: Request< { id: string }, never, PaymentRequestSchema>, res: Response) => {
       try {
         const ordersService = new ItemsService('orders', { schema: req.schema }) as AbstractService<OrderInterface>
 
         const order = await ordersService.readOne(req.params.id, { fields: ['*', 'items.*.*'] })
 
         if (order.link)
-          return res.send(order.link)
+          return res.send({ url: order.link })
 
         const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = []
 
@@ -34,7 +39,7 @@ export default defineEndpoint({
             quantity: 1,
             price_data: {
               unit_amount: item.price * 100,
-              currency: 'pln',
+              currency: env.STRIPE_CURRENCY,
               product_data: {
                 name: item.name,
                 description: item.short ?? item.name,
@@ -49,22 +54,21 @@ export default defineEndpoint({
 
         const session = await stripe.checkout.sessions.create({
           line_items,
-          customer_email: 'test@o2.pl',
-          currency: 'pln',
+          customer_email: req.body.customer_email,
+          currency: env.STRIPE_CURRENCY,
           mode: 'payment',
           success_url: env.STRIPE_CUSTOMERS_SUCCESS_URL,
           cancel_url: env.STRIPE_CUSTOMERS_CANCEL_URL,
           payment_intent_data: {
-            // todo Inject in req
             shipping: {
-              name: 'Test123',
-              phone: '000 000 000',
+              name: req.body.name,
+              phone: req.body.phone,
               address: {
-                line1: 'Testline1',
-                city: 'TestCity',
-                country: 'PL',
-                line2: 'Testline2',
-                postal_code: '880-989',
+                line1: req.body.address.line1,
+                city: req.body.address.city,
+                country: req.body.address.country,
+                line2: req.body.address.line2,
+                postal_code: req.body.address.postal_code,
               },
             },
           },
@@ -73,12 +77,12 @@ export default defineEndpoint({
           },
         })
 
-        await ordersService.updateOne(order.id, { link: session.url })
-        return res.send(session.url)
+        await ordersService.updateOne(order.id, { link: session.url, status: OrderStatus.PREPENDING })
+        return res.send({ url: session.url })
       }
       catch (err) {
         console.error(err)
-        return res.send('Error').status(500)
+        return res.send({ error: [{ message: '500' }] }).status(500)
       }
     })
 
@@ -117,16 +121,13 @@ export default defineEndpoint({
 
       switch (event.type) {
         case 'payment_intent.payment_failed':
-          await ordersService.updateOne(order_id, { status: 'fail' })
+          await ordersService.updateOne(order_id, { status: OrderStatus.FAIL })
           break
-          // case 'payment_intent.amount_capturable_updated':
-          //
-          //   break
-        case 'payment_intent.succeeded':
-          await ordersService.updateOne(order_id, { status: 'paid' })
 
+        case 'payment_intent.succeeded':
+          await ordersService.updateOne(order_id, { status: OrderStatus.PAID })
           break
-        // ... handle other event types
+
         default:
           console.log(`Unhandled event type ${event.type}`)
       }
