@@ -77,7 +77,20 @@ export default defineEndpoint({
           },
         })
 
-        await ordersService.updateOne(order.id, { link: session.url, status: OrderStatus.PREPENDING })
+        const orderPayload: Partial<OrderInterface> = {
+          email: req.body.customer_email,
+          name: req.body.name,
+          phone: req.body.phone,
+          line1: req.body.address.line1,
+          city: req.body.address.city,
+          country: req.body.address.country,
+          line2: req.body.address.line2,
+          postal_code: req.body.address.postal_code,
+          link: session.url,
+          status: OrderStatus.PREPENDING,
+        }
+
+        await ordersService.updateOne(order.id, orderPayload)
         return res.send({ url: session.url })
       }
       catch (err) {

@@ -47,6 +47,14 @@ export interface OrderInterface {
     sort?: number | null;
     status?: string | null;
     user?: string | null;
+    line1?: string | null;
+    line2?: string | null;
+    name?: string | null;
+    email?: string | null;
+    city?: string | null;
+    country?: string | null;
+    phone?: string | null;
+    postal_code?: string | null;
     user_created?: string | null;
     user_updated?: string | null;
     date_created?: Date | null;
