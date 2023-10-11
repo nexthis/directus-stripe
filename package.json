@@ -1,0 +1,53 @@
+{
+  "name": "directus-extension-directus-bundles-stripe",
+  "version": "1.0.0",
+  "type": "module",
+  "directus:extension": {
+    "host": "^10.1.11",
+    "type": "bundle",
+    "path": {
+      "app": "dist/app.js",
+      "api": "dist/api.js"
+    },
+    "entries": [
+      {
+        "type": "hook",
+        "name": "stripe-hook",
+        "source": "src/hook/index.ts"
+      },
+      {
+        "type": "endpoint",
+        "name": "stripe-endpoint",
+        "source": "src/endpoint/index.ts"
+      }
+    ]
+  },
+  "description": "Please enter a description for your extension",
+  "icon": "extension",
+  "keywords": [
+    "directus",
+    "directus-extension",
+    "directus-custom-bundle"
+  ],
+  "scripts": {
+    "build": "directus-extension build",
+    "dev": "directus-extension build -w --no-minify",
+    "link": "directus-extension link",
+    "add": "directus-extension add",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "joi": "^17.11.0",
+    "stripe": "^13.8.0"
+  },
+  "devDependencies": {
+    "@directus/extensions-sdk": "10.1.11",
+    "@directus/types": "^10.1.6",
+    "@types/node": "^20.8.0",
+    "typescript": "^5.2.2",
+    "vitepress": "^1.0.0-rc.20"
+  }
+}
