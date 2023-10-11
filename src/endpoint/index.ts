@@ -7,6 +7,7 @@ import { paymentValidator } from '../validator/payment'
 import { OrderStatus } from '../constant/order'
 import validator from '../middleware/validator'
 import type { AbstractService } from '../types/services'
+import { groupBy } from '../utils/array'
 
 function createImageUrl(baseUrl: string, image: string) {
   const url = new URL(`assets/${image}`, baseUrl)
@@ -24,19 +25,31 @@ export default defineEndpoint({
     router.post('/payment/:id', validator(paymentValidator, 'body'), async (req: Request< { id: string }, never, PaymentRequestSchema>, res: Response) => {
       try {
         const ordersService = new ItemsService('orders', { schema: req.schema }) as AbstractService<OrderInterface>
+        const productsService = new ItemsService('products', { schema: req.schema }) as AbstractService<ProductsInterface>
 
         const order = await ordersService.readOne(req.params.id, { fields: ['*', 'items.*.*'] })
+
+        if (order.status !== OrderStatus.NEW && order.status !== OrderStatus.PREPENDING)
+          throw new Error(`Order is not new; order status: ${order.status}`)
 
         if (order.link)
           return res.send({ url: order.link })
 
         const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = []
 
-        for (const product of order.items) {
-          const item = product.products_id as ProductsInterface
+        const products = order.items.map(item => item.products_id as ProductsInterface)
+        const productGroupById = groupBy(products, item => item.id as any as string)
+
+        for (const key in productGroupById) {
+          const items = productGroupById[key]!
+          const item = items[items?.length - 1]!
+          const count = items?.length
+          const amount = item.amount ?? 0
+          if (amount - count <= 0)
+            throw new Error(`There is not enough product with id: ${key} `)
 
           line_items.push({
-            quantity: 1,
+            quantity: count,
             price_data: {
               unit_amount: item.price * 100,
               currency: env.STRIPE_CURRENCY,
@@ -50,6 +63,15 @@ export default defineEndpoint({
               },
             },
           })
+        }
+
+        for (const key in productGroupById) {
+          const items = productGroupById[key]!
+          const item = items[items?.length - 1]!
+          const count = items?.length
+          const amount = item.amount ?? 0
+
+          await productsService.updateOne(key, { amount: amount - count })
         }
 
         const session = await stripe.checkout.sessions.create({
@@ -87,6 +109,7 @@ export default defineEndpoint({
           line2: req.body.address.line2,
           postal_code: req.body.address.postal_code,
           link: session.url,
+          link_expires_at: new Date(session.expires_at * 1000),
           status: OrderStatus.PREPENDING,
         }
 
@@ -95,7 +118,7 @@ export default defineEndpoint({
       }
       catch (err) {
         console.error(err)
-        return res.send({ error: [{ message: '500' }] }).status(500)
+        return res.send({ error: [{ message: 'Server Error' }] }).status(500)
       }
     })
 

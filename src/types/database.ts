@@ -44,6 +44,7 @@ export interface OrderInterface {
     id: string;
     is_anonymous?: boolean | null;
     link?: string | null;
+    link_expires_at?: Date | null;
     sort?: number | null;
     status?: string | null;
     user?: string | null;
