@@ -4,6 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "Directus Stripe",
   description: "Directus stripe plugin",
+  base: "/directus-stripe/",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
