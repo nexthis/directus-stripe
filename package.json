@@ -1,7 +1,25 @@
 {
-  "name": "directus-extension-directus-bundles-stripe",
-  "version": "1.0.0",
+  "name": "directus-extension-stripe-bundle",
+  "version": "1.0.0-alpha.1",
   "type": "module",
+  "author": {
+    "name": "Paweł Romanowski",
+    "url": "https://pawel-romanowski.pl/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nexthis/directus-stripe"
+  },
+  "keywords": [
+    "typescript",
+    "plugin",
+    "stripe",
+    "directus",
+    "directus-extension",
+    "directus-custom-bundle"
+  ],
+  "description": "Receive payments on your Directus commerce application using Stripe.",
+  "icon": "extension",
   "directus:extension": {
     "host": "^10.1.11",
     "type": "bundle",
@@ -22,13 +40,6 @@
       }
     ]
   },
-  "description": "Please enter a description for your extension",
-  "icon": "extension",
-  "keywords": [
-    "directus",
-    "directus-extension",
-    "directus-custom-bundle"
-  ],
   "scripts": {
     "build": "directus-extension build",
     "dev": "directus-extension build -w --no-minify",
