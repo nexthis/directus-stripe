@@ -87,6 +87,18 @@ amount - Input (integer) !required on create
 
 Feel free to add columns to the table, but **please refrain from making changes to the current columns**. You are also allowed to introduce status fields as needed.
 
+## Setting Environment Variables
+
+To ensure proper functionality, you need to define the following environment variables:
+
+- `STRIPE_SECRET_KEY`: Your Stripe secret key, for example, `sk_test_....`.
+- `STRIPE_WEBHOOK_SECRET`: Your Stripe webhook secret, such as `whsec_....`.
+- `STRIPE_CUSTOMERS_SUCCESS_URL`: This should be the URL for successful customer interactions, e.g., `http://hostname/success.html`.
+- `STRIPE_CUSTOMERS_CANCEL_URL`: The URL for canceled customer interactions, for instance, `http://hostname/cancel.html`.
+- `STRIPE_CURRENCY`: The currency code, like `pln`.
+
+Please make sure these variables are correctly set in your environment to enable your application to function as expected.
+
 ## Creating Your First Order
 
 To create your first order using the Directus admin panel or Directus API, follow these steps:
