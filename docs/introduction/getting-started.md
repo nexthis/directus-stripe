@@ -54,7 +54,7 @@ date_created    - Datetime
 user_updated    - Many to One
 date_updated    - Datetime
 
-items           - Many to Many (products)
+items           - Many to Many (products) !required on create
 link            - Input (text)
 link_expires_at - Datetime (datetime)
 user            - Many to One (directus_users)
@@ -78,13 +78,14 @@ date_created - Datetime
 user_updated - Many to One
 date_updated - Datetime
 
-image - Image  (image)
-name - Input (string)
-price - Input (float)
-short - Textarea (text)
-amount - Input (integer)
+image - Image  (image) !required on create
+name - Input (string) !required on create
+price - Input (float) !required on create
+short - Textarea (text) !required on create
+amount - Input (integer) !required on create
 ```
 
+Feel free to add columns to the table, but **please refrain from making changes to the current columns**. You are also allowed to introduce status fields as needed.
 
 ## Creating Your First Order
 
