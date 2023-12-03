@@ -38,7 +38,7 @@ export default defineEndpoint({
         const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = []
 
         const products = order.items.map(item => item.products_id as ProductsInterface)
-        const productGroupById = groupBy(products, item => item.id as any as string)
+        const productGroupById = groupBy(products, item => item.id)
 
         for (const key in productGroupById) {
           const items = productGroupById[key]!
