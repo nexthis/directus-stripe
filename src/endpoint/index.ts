@@ -1,13 +1,13 @@
 import Stripe from 'stripe'
 import { defineEndpoint } from '@directus/extensions-sdk'
-import type { OrderInterface, ProductsInterface } from '../types/database'
-import type { Request, Response } from 'express'
-import type { PaymentRequestSchema } from '../validator/payment'
 import { paymentValidator } from '../validator/payment'
 import { OrderStatus } from '../constant/order'
 import validator from '../middleware/validator'
-import type { AbstractService } from '../types/services'
 import { groupBy } from '../utils/array'
+import type { OrderInterface, ProductsInterface } from '../types/database'
+import type { Request, Response } from 'express'
+import type { PaymentRequestSchema } from '../validator/payment'
+import type { AbstractService } from '../types/services'
 
 function createImageUrl(baseUrl: string, image: string) {
   const url = new URL(`assets/${image}`, baseUrl)
@@ -19,7 +19,7 @@ export default defineEndpoint({
   id: 'stripe',
 
   handler: (router, { env, services }) => {
-    const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-08-16' })
+    const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' })
     const { ItemsService } = services
 
     router.post('/payment/:id', validator(paymentValidator, 'body'), async (req: Request< { id: string }, never, PaymentRequestSchema>, res: Response) => {
