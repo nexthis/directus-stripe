@@ -123,8 +123,7 @@ export default defineEndpoint({
     })
 
     router.post('/webhook', async (req, res) => {
-      const endpointSecret = env.STRIPE_WEBHOOK_SECRET
-
+      
       let event: Stripe.Event
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
@@ -137,7 +136,7 @@ export default defineEndpoint({
       }
 
       try {
-        event = stripe.webhooks.constructEvent(body, signature, endpointSecret)
+        event = stripe.webhooks.constructEvent(body, signature, env.STRIPE_WEBHOOK_SECRET)
       }
       catch (err: any) {
         res.status(400).send(`Webhook Error: ${err.message}`)
