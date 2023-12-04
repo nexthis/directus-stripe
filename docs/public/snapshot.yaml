@@ -1,5 +1,5 @@
 version: 1
-directus: 13.1.1
+directus: 14.1.2
 vendor: postgres
 collections:
   - collection: Store
@@ -23,6 +23,7 @@ collections:
       sort_field: null
       translations: null
       unarchive_value: null
+      versioning: false
   - collection: orders
     meta:
       accountability: all
@@ -44,6 +45,7 @@ collections:
       sort_field: sort
       translations: null
       unarchive_value: draft
+      versioning: false
     schema:
       name: orders
   - collection: orders_products
@@ -67,6 +69,7 @@ collections:
       sort_field: null
       translations: null
       unarchive_value: null
+      versioning: false
     schema:
       name: orders_products
   - collection: products
@@ -90,6 +93,7 @@ collections:
       sort_field: sort
       translations: null
       unarchive_value: draft
+      versioning: false
     schema:
       name: products
 fields:
@@ -332,8 +336,9 @@ fields:
     meta:
       collection: orders
       conditions: null
-      display: null
-      display_options: null
+      display: related-values
+      display_options:
+        template: '{{products_id.name}}'
       field: items
       group: null
       hidden: false
@@ -689,19 +694,22 @@ fields:
       display: labels
       display_options:
         choices:
-          - text: $t:published
-            value: published
+          - text: new
+            value: new
             foreground: '#FFFFFF'
-            background: var(--primary)
-          - text: $t:draft
-            value: draft
+            background: '#3399FF'
+          - text: prepending
+            value: prepending
             foreground: '#18222F'
-            background: '#D3DAE4'
-          - text: $t:archived
-            value: archived
+            background: '#FFC23B'
+          - text: paid
+            value: paid
             foreground: '#FFFFFF'
-            background: var(--warning)
-        showAsDot: true
+            background: '#2ECDA7'
+          - text: fail
+            value: fail
+            foreground: '#FFFFFF'
+            background: '#E35169'
       field: status
       group: null
       hidden: false
@@ -992,12 +1000,12 @@ fields:
       options: null
       readonly: false
       required: true
-      sort: 12
+      sort: 11
       special: null
       translations: null
       validation: null
       validation_message: null
-      width: full
+      width: half
     schema:
       name: amount
       table: products
@@ -1231,7 +1239,7 @@ fields:
       translations: null
       validation: null
       validation_message: null
-      width: full
+      width: half
     schema:
       name: price
       table: products
@@ -1265,7 +1273,7 @@ fields:
         placeholder: Short description
       readonly: false
       required: false
-      sort: 11
+      sort: 12
       special: null
       translations: null
       validation: null
@@ -1465,6 +1473,18 @@ fields:
       foreign_key_table: directus_users
       foreign_key_column: id
 relations:
+  - collection: directus_settings
+    field: public_favicon
+    related_collection: directus_files
+    meta: null
+    schema:
+      table: directus_settings
+      column: public_favicon
+      foreign_key_table: directus_files
+      foreign_key_column: id
+      constraint_name: directus_settings_public_favicon_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
   - collection: orders
     field: user
     related_collection: directus_users
