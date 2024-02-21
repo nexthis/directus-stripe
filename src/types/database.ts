@@ -1,15 +1,16 @@
-export interface products_filesEntity {
+export interface ProductsFilesInterface {
+    id: number;
     directus_files_id?: string | null;
-    id?: number;
-    products_id?: number | null;
+    products_id?: string | null;
 }
 
 
 
 export interface CategoriesInterface  {
+    id: string;
     date_created?: Date | null;
     date_updated?: Date | null;
-    id?: number;
+    
     name?: string;
     status?: string;
     user_created?: string | null;
@@ -18,12 +19,12 @@ export interface CategoriesInterface  {
 
 
 export interface ProductsInterface {
+    id: string;
     amount?: number | null;
     category?: number | null;
     date_created?: Date | null;
     date_updated?: Date | null;
     description?: Object | null;
-    id?: number;
     image?: string | null;
     name?: string | null;
     price?: number | null;
@@ -36,7 +37,7 @@ export interface ProductsInterface {
     user_created?: string | null;
     user_updated?: string | null;
     categorie: CategoriesInterface
-    images: Array<products_filesEntity>
+    images: Array<ProductsFilesInterface>
 }
   
 
@@ -60,5 +61,12 @@ export interface OrderInterface {
     user_updated?: string | null;
     date_created?: Date | null;
     date_updated?: Date | null;
-    items: Array<ProductsInterface>
+    items: Array<ProductsOrdersInterface>
   }
+
+
+export interface ProductsOrdersInterface {
+    id: number;
+    order_id?: string | null | OrderInterface;
+    products_id?: string | null | ProductsInterface;
+}
