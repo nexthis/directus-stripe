@@ -55,7 +55,7 @@ export default defineEndpoint({
               currency: env.STRIPE_CURRENCY,
               product_data: {
                 name: item.name,
-                description: item.short ?? item.name,
+                description: item.short ?? undefined,
                 images: item.image ? [createImageUrl(env.PUBLIC_URL, item.image)] : [],
                 metadata: {
                   product_id: item.id,
